@@ -120,6 +120,7 @@ x축 나이, y축 월급으로 지정하여 나이에 따른 월급의 변화가
 ggplot(data=age_income, aes(x=age, y=mean_income)) + geom_line()
 ```
 
-![](welfare03-작업-_files/figure-gfm/unnamed-chunk-7-1.png)<!-- --> 20대
-초반에 100만원 가량의 월급을 받고, 이후 지속적으로 증가하는 추세 50대 무렵 300만원 초반대로 가장 많은 월급을
+![](welfare03-작업-_files/figure-gfm/unnamed-chunk-7-1.png)<!-- -->
+
+20대 초반에 100만원 가량의 월급을 받고, 이후 지속적으로 증가하는 추세 50대 무렵 300만원 초반대로 가장 많은 월급을
 받고, 그 이후로 지속적으로 감소하다가 70세 이후에는 20대보다 낮은 월급을 받음.
