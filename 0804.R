@@ -1,0 +1,239 @@
+
+#Part11_지도시각화 
+#미국 주별 강력 범죄율 단계 구분도 만들기
+install.packages("ggiraphExtra")
+library(ggiraphExtra)
+str(USArrests)
+head(USArrests)
+library(tibble)
+#행 이름을 state 변수로 바꿔 데이터 프레임 생성
+crime <- rownames_to_column(USArrests, var="state")
+#지도 데이터와 동일하게 맞추기 위해 state의 값을 소문자로 수정
+crime$state <-tolower(crime$state)
+str(crime)
+
+install.packages("maps")
+library(maps)
+library(ggplot2)
+states_map <- map_data("state")
+str(states_map)
+install.packages("mapproj")
+library(mapproj)
+ggChoropleth(data=crime, 
+             aes(fill=Murder,
+                 map_id=state),
+             map=states_map)
+
+ggChoropleth(data=crime, 
+             aes(fill=Murder,
+                 map_id=state),
+             map=states_map,
+             interactive = T)
+
+#대한민국 시도별 인구, 결핵 환자 수 단계 구분도 만들기
+install.packages("stringi")
+install.packages("devtools")
+devtools::install_github("cardiomoon/kormaps2014")
+library(kormaps2014)
+str(changeCode(korpop1))
+library(dplyr)
+korpop1
+korpop1 <- rename(korpop1,
+                  pop = 총인구_명,
+                  name = 행정구역별_읍면동)
+korpop1$name<-iconv(korpop1$name, "UTF-8", "CP949")
+str(changeCode(kormap1))
+str(changeCode(korpop1))
+
+install.packages("ggiraphExtra")
+library(ggiraphExtra)
+library(ggplot2)
+ggChoropleth(data=korpop1,
+             aes(fill = pop,
+                 map_id = code, 
+                 tooltip = name), 
+             map=kormap1, 
+             interactive=T)
+
+#Part12_인터랙티브 그래프 
+#plotly패키지로 인터랙티브 그래프 만들기
+install.packages("plotly")
+library(plotly)
+library(ggplot2)
+p<-ggplot(data=mpg, aes(x=displ, y=hwy, col=drv))+geom_point()
+ggplotly(p)
+
+p<-ggplot(data=diamonds, aes(x=cut, fill=clarity))+geom_bar(position = "dodge")
+ggplotly(p)
+
+#dygraphs 패키지로 인터랙티브 시계열 그래프 만들기
+install.packages("dygraphs")
+library(dygraphs)
+economics <- ggplot2::economics
+head(economics)
+library(xts)
+eco<-xts(economics$unemploy, order.by=economics$date)
+head(eco)
+dygraph(eco)
+dygraph(eco) %>% dyRangeSelector()
+#저축률
+eco_a <-xts(economics$psavert, order.by = economics$date)
+#실업자수
+eco_b <-xts(economics$unemploy/1000, order.by = economics$date)
+eco2<-cbind(eco_a, eco_b)
+colnames(eco2) <- c("psavert", "unemploy")
+head(eco2)
+dygraph(eco2) %>% dyRangeSelector()
+?dygraph
+
+#part15_R 내장 함수, 변수 타입과 데이터 구조
+exam <-read.csv("csv_exam.csv")
+#행번호로 행 추출
+exam[]
+exam[1,]
+exam[2,]
+#조건을 충족하는 행 추출하기
+exam[exam$class==1,]
+exam[exam$math>=80,]
+exam[exam$class== 1 & exam$math>=50,]
+exam[exam$english<90 |exam$science<50,]
+#열 번호로 변수 추출하기
+exam[,1]
+exam[,2]
+exam[,3]
+#변수명으로 변수 추출하기 
+exam[,"class"]
+exam[,"math"]
+exam[,c("class", "math", "english")]
+#행, 변수 동시 추출하기
+exam[1,3]
+exam[5,"english"]
+exam[exam$math >=50, "english"]
+exam[exam$math>=50, c("english", "science")]
+#dplyr과 내장 함수의 차이
+#내장함수코드
+exam$tot <- (exam$math + exam$english + exam$science)/3
+aggregate(data=exam[exam$math >= 50 & exam$english >= 80,], tot~class, mean)
+#dplyr 코드
+exam %>% 
+  filter(math>=50 & english>=80) %>% 
+  mutate(tot=(math+english+science)/3) %>% 
+  group_by(class) %>% 
+  summarise(mean=mean(tot))
+
+mpg<-as.data.frame(ggplot2::mpg)
+mpg %>% 
+  mutate(tot=(cty+hwy)/2) %>% 
+  filter(class=="compact"|class=="suv") %>% 
+  group_by(class) %>% 
+  summarise(mean_tot=mean(tot))
+
+mpg$tot<-(mpg$cty+mpg$hwy)/2
+df_comp<-mpg[mpg$class=="compact",]
+df_suv<-mpg[mpg$class=="suv",]
+mean(df_comp$tot)
+mean(df_suv$tot)
+
+#15-2_변수 타입
+var1<-c(1,2,3,1,2)
+var2<-factor(c(1,2,3,1,2))
+var1
+var2
+var1+2
+var2+2
+class(var1)
+class(var2)
+levels(var1)
+levels(var2)
+var3<-c("a","b","b","c")
+var4<-factor(c("a","b","b","c"))
+var3
+var4
+class(var3)
+class(var4)
+mean(var1)
+mean(var2)
+#변수타입 바꾸기
+var2<-as.numeric(var2)
+mean(var2)
+class(var2)
+levels(var2)
+
+
+class(mpg$drv)
+mpg$drv<-as.factor(mpg$drv)
+class(mpg$drv)
+levels(mpg$drv)
+
+#15-3_데이터 구조
+#백터Vactor
+a<-1
+a
+b<-"hello"
+b
+class(a)
+class(b)
+#데이터프레임Data Frame
+x1<- data.frame(var1=c(1,2,3),
+               var2=c("a","b","c"))
+x1
+class(x1)
+#매트릭스 Matrix
+x2 <- matrix(c(1:12), ncol = 2)
+x2
+class(x2)
+#어레이Array
+x3 <- array(1:20, dim = c(2, 5, 2))
+x3
+#리스트 List
+x4<-list(f1=a, f2=x1, f3=x2, f4=x3)
+x4
+class(x4)
+
+mpg<-ggplot2::mpg
+x<-boxplot(mpg$cty)
+x
+x$stats[,1]
+x$stats[,1][3]
+x$stats[,1][2]
+
+
+#13-2_T검정
+mpg<-as.data.frame(ggplot2::mpg)
+library(dplyr)
+mpg_diff<-mpg %>% 
+  select(class,cty) %>% 
+  filter(class %in% c("compact", "suv"))
+head(mpg_diff)
+table(mpg_diff$class)
+t.test(data=mpg_diff, cty~class, var.equal = T)
+
+mpg_diff2<-mpg %>% 
+  select(fl,cty) %>% 
+  filter(fl %in% c("r","p"))
+table(mpg_diff2$fl)
+t.test(data=mpg_diff2, cty~fl, var.equal=T)
+
+#13-3_상관분석-두 변수의 관계성 분석
+economics<-as.data.frame(ggplot2::economics)
+cor.test(economics$unemploy, economics$pce)
+
+head(mtcars)
+
+car_ror <-cor(mtcars)
+round(car_ror, 2)
+
+install.packages("corrplot")
+library(corrplot)
+corrplot(car_ror)
+corrplot(car_ror, method="number")
+col<-colorRampPalette(c("#BB4444","#EE9988","#FFFFFF", "#77AADD", "#4477AA"))
+corrplot(car_ror,
+         method = "color",
+         col=col(200), 
+         type="lower", 
+         order="hclust", 
+         addCoef.col = "black", 
+         tl.col = "black", 
+         tl.srt=45, 
+         diag=F)
